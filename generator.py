@@ -50,15 +50,6 @@ def get_random_font_color(bg_type):
     return font_color
 
 
-def get_random_text_test(directory: str):
-    if directory == FONT_DIR_EN:
-        return np.random.choice(["hello", "TesT", "0t1Vck3z"])
-    elif directory == FONT_DIR_JP:
-        return np.random.choice(["トラック", "くるま", "乗り物"])
-    else:
-        raise ValueError("Can't recognize dir name.")
-
-
 def get_random_text(directory: str):
     rand_folder = np.random.choice(list(os.walk(TEXT_DIR))[0][1])
     rand_dir = TEXT_DIR + rand_folder + "/"
@@ -67,9 +58,8 @@ def get_random_text(directory: str):
         data = f.read()
     bs_data = BeautifulSoup(data, 'xml')
     if directory == FONT_DIR_EN:
-        b_j = list(bs_data.find_all(attrs={"ver": "1"}))
-        b_j = [str(i).replace("<e type=\"trans\" ver=\"1\">", "")
-                     .replace("<e type=\"check\" ver=\"1\">", "")
+        b_j = list(bs_data.find_all(attrs={"type": "check", "ver": "1"}))
+        b_j = [str(i).replace("<e type=\"check\" ver=\"1\">", "")
                      .replace("</e>", "") for i in b_j]
         text_val = np.random.choice(b_j)
         if text_val[:60][-1] == " ":
@@ -115,7 +105,6 @@ def generate_image(directory: str):
                                                   .replace(" ", "")
                                                   .replace(":", "")
                                                   .replace(".", "") + ".jpg")
-
 
 def main():
     for i in range(10):
