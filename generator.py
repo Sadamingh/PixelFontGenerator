@@ -1,5 +1,6 @@
 from PIL import Image, ImageFont, ImageDraw
 import numpy as np
+from bs4 import BeautifulSoup
 import os
 import datetime
 
@@ -7,6 +8,7 @@ import datetime
 FONT_DIR_EN = "en_fonts/"
 FONT_DIR_JP = "jp_fonts/"
 BG_DIR = "bgs/"
+TEXT_DIR = "text_corpus/wiki_corpus_2.01/"
 
 def random_color():
     r = np.random.randint(0, 255)
@@ -48,11 +50,44 @@ def get_random_font_color(bg_type):
     return font_color
 
 
-def get_random_text(directory: str):
+def get_random_text_test(directory: str):
     if directory == FONT_DIR_EN:
         return np.random.choice(["hello", "TesT", "0t1Vck3z"])
     elif directory == FONT_DIR_JP:
         return np.random.choice(["トラック", "くるま", "乗り物"])
+    else:
+        raise ValueError("Can't recognize dir name.")
+
+
+def get_random_text(directory: str):
+    rand_folder = np.random.choice(list(os.walk(TEXT_DIR))[0][1])
+    rand_dir = TEXT_DIR + rand_folder + "/"
+    rand_file = np.random.choice([f for f in os.listdir(rand_dir) if not f.startswith('.')])
+    with open(rand_dir + rand_file, 'r') as f:
+        data = f.read()
+    bs_data = BeautifulSoup(data, 'xml')
+    if directory == FONT_DIR_EN:
+        b_j = list(bs_data.find_all(attrs={"ver": "1"}))
+        b_j = [str(i).replace("<e type=\"trans\" ver=\"1\">", "")
+                     .replace("<e type=\"check\" ver=\"1\">", "")
+                     .replace("</e>", "") for i in b_j]
+        text_val = np.random.choice(b_j)
+        if text_val[:60][-1] == " ":
+            result = text_val[:60] + "\n" + text_val[60:120]
+        elif text_val[60:120]:
+            if text_val[60:120][0] == " ":
+                result = text_val[:60] + "\n" + text_val[60:120]
+            else:
+                result = text_val[:60] + "-\n" + text_val[60:120]
+        else:
+            result = text_val[:60]
+        return result
+    elif directory == FONT_DIR_JP:
+        b_j = list(bs_data.find_all('j'))
+        b_j = [str(i).replace("<j>", "")
+                     .replace("</j>", "") for i in b_j]
+        text_val = np.random.choice(b_j)
+        return text_val[:30] + "\n" + text_val[30:60]
     else:
         raise ValueError("Can't recognize dir name.")
 
@@ -64,7 +99,7 @@ def generate_image(directory: str):
     draw = ImageDraw.Draw(im)
 
     font_name = directory + get_random_font(directory)
-    font_size = int(im.size[0] * 0.03)
+    font_size = int(im.size[0] * 0.025)
     font = ImageFont.truetype(font_name, font_size)
 
     text_value = get_random_text(directory)
@@ -75,11 +110,15 @@ def generate_image(directory: str):
 
     if im.mode == "RGBA":
         im = im.convert('RGB')
-    im.save("data/" + str(datetime.datetime.now()) + ".jpg")
+    im.save("data/" + str(datetime.datetime.now()).replace("/", "")
+                                                  .replace("-", "")
+                                                  .replace(" ", "")
+                                                  .replace(":", "")
+                                                  .replace(".", "") + ".jpg")
 
 
 def main():
-    for i in range(5):
+    for i in range(10):
         generate_image(FONT_DIR_EN)
         generate_image(FONT_DIR_JP)
 
