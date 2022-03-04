@@ -16,17 +16,19 @@ def random_color():
     return r, g, b, a
 
 
-def get_background():
+def get_rand_background():
     if np.random.random() < .1:
         r, g, b, a = random_color()
-        im = Image.new('RGBA', (400, 200), (r, g, b, a))
+        im = Image.new('RGBA', (800, 200), (r, g, b, a))
         print("[DEBUG] Background name: plain")
+        bg_type = "plain"
     else:
         backgrounds = [f for f in os.listdir(BG_DIR) if not f.startswith('.')]
         background = np.random.choice(backgrounds)
         im = Image.open(BG_DIR + background)
-        print("[DEBUG] Background name: " + background)
-    return im
+        print("[DEBUG] Background name: " + background + str(im.size))
+        bg_type = background
+    return im, bg_type
 
 
 def get_random_font(directory: str):
@@ -34,6 +36,16 @@ def get_random_font(directory: str):
     font = np.random.choice(font_list)
     print("[DEBUG] Font name: " + font)
     return font
+
+
+def get_random_font_color(bg_type):
+    if "b" in bg_type:     # means black bg
+        font_color = "#fff"
+    elif "w" in bg_type:
+        font_color = "#000"
+    else:
+        font_color = ["#000" if np.random.random() < 0.5 else "#fff"][0]
+    return font_color
 
 
 def get_random_text(directory: str):
@@ -47,16 +59,17 @@ def get_random_text(directory: str):
 
 def generate_image(directory: str):
 
-    im = get_background()
+    im, bg_type = get_rand_background()
 
     draw = ImageDraw.Draw(im)
 
     font_name = directory + get_random_font(directory)
-    font_size = int(im.size[1]/6)
+    font_size = int(im.size[0] * 0.03)
     font = ImageFont.truetype(font_name, font_size)
 
     text_value = get_random_text(directory)
-    draw.text((im.size[0]*.25, im.size[1]*.25), text_value, font=font, fill=random_color())
+    font_color = get_random_font_color(bg_type)
+    draw.text((im.size[1]*.1, im.size[0]*.01), text_value, font=font, fill=font_color)
 
     # im.show()
 
@@ -66,7 +79,7 @@ def generate_image(directory: str):
 
 
 def main():
-    for i in range(10):
+    for i in range(5):
         generate_image(FONT_DIR_EN)
         generate_image(FONT_DIR_JP)
 
