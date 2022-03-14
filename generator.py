@@ -21,7 +21,7 @@ def random_color():
 def get_rand_background():
     if np.random.random() < .1:
         r, g, b, a = random_color()
-        im = Image.new('RGBA', (800, 200), (r, g, b, a))
+        im = Image.new('RGBA', (1000, 120), (r, g, b, a))
         print("[DEBUG] Background name: plain")
         bg_type = "plain"
     else:
