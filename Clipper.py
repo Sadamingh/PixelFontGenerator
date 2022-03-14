@@ -21,8 +21,11 @@ for bg in inputs:
             continue
         draw = ImageDraw.Draw(im, "RGBA")
         if np.random.random() < 0.5:
-            draw.rectangle(crop_area, fill=(255, 255, 255, 120))
+            draw.rectangle((0, 0, 1000, 120), fill=(255, 255, 255, 120))
             if im.size[0] >= 1000 and im.size[1] >= 120:
+                x_start = np.random.uniform(0, im.size[0] - 1000)
+                y_start = np.random.uniform(0, im.size[1] - 120)
+                crop_area = (x_start, y_start, x_start + 1000, y_start + 120)
                 cropped_im = im.crop(crop_area)
                 cropped_im.save(EXPORT_DIR + "img_" + str(datetime.datetime.now()).replace("/", "")
                                 .replace("-", "")
@@ -30,8 +33,11 @@ for bg in inputs:
                                 .replace(":", "")
                                 .replace(".", "") + "_w" + ".jpg")
         else:
-            draw.rectangle(crop_area, fill=(0, 0, 0, 120))
+            draw.rectangle((0, 0, 1000, 120), fill=(0, 0, 0, 120))
             if im.size[0] >= 1000 and im.size[1] >= 120:
+                x_start = np.random.uniform(0, im.size[0] - 1000)
+                y_start = np.random.uniform(0, im.size[1] - 120)
+                crop_area = (x_start, y_start, x_start+1000, y_start+120)
                 cropped_im = im.crop(crop_area)
                 cropped_im.save(EXPORT_DIR + "img_" + str(datetime.datetime.now()).replace("/", "")
                                 .replace("-", "")
