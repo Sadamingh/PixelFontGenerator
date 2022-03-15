@@ -20,7 +20,10 @@ for bg in tqdm(inputs):
             im = Image.open(IMPORT_DIR + bg)
         except PIL.UnidentifiedImageError:
             continue
-        draw = ImageDraw.Draw(im, "RGBA")
+        try:
+            draw = ImageDraw.Draw(im, "RGBA")
+        except ValueError:
+            continue
         if np.random.random() < 0.5:
             draw.rectangle((0, 0, im.size[0], im.size[1]), fill=(255, 255, 255, 120))
             if im.size[0] >= 1000 and im.size[1] >= 500:
