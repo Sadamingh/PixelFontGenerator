@@ -61,8 +61,8 @@ def get_random_text(directory: str):
     rand_folder = np.random.choice(list(os.walk(TEXT_DIR))[0][1])
     rand_dir = TEXT_DIR + rand_folder + "/"
     rand_file = np.random.choice([f for f in os.listdir(rand_dir) if not f.startswith('.')])
-    with open(rand_dir + rand_file, 'r') as f:
-        data = f.read(encoding='utf-8')
+    with open(rand_dir + rand_file, 'r', encoding='utf-8') as f:
+        data = f.read()
     bs_data = BeautifulSoup(data, 'xml')
 
     if directory == FONT_DIR_EN:
