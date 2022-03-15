@@ -4,6 +4,7 @@ from bs4 import BeautifulSoup
 import os
 import sys
 import datetime
+from tqdm import tqdm
 
 FONT_DIR_EN = "en_fonts/"
 FONT_DIR_JP = "jp_fonts/"
@@ -29,13 +30,11 @@ def get_rand_background():
         random_type = "w" if np.random.random() < 0.5 else "b"
         r, g, b, a = random_color(random_type)
         im = Image.new('RGBA', (1000, 500), (r, g, b, a))
-        print("[DEBUG] Background name: plain")
         bg_type = "plain_" + random_type
     else:
         backgrounds = [f for f in os.listdir(BG_DIR) if not f.startswith('.')]
         background = np.random.choice(backgrounds)
         im = Image.open(BG_DIR + background)
-        print("[DEBUG] Background name: " + background + str(im.size))
         bg_type = background
     return im, bg_type
 
@@ -43,7 +42,6 @@ def get_rand_background():
 def get_random_font(directory: str):
     font_list = [f for f in os.listdir(directory) if not f.startswith('.')]
     font = np.random.choice(font_list)
-    print("[DEBUG] Font name: " + font)
     return font
 
 
@@ -176,7 +174,7 @@ def main():
     if not os.path.exists("jp_data/images/"):
         os.makedirs("jp_data/images/")
 
-    for i in range(int(sys.argv[1])):
+    for i in tqdm(range(int(sys.argv[1]))):
         generate_image(FONT_DIR_EN, "en_data/images/", int(sys.argv[2]))
         generate_image(FONT_DIR_JP, "jp_data/images/", int(sys.argv[2]))
 

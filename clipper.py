@@ -3,13 +3,15 @@ import PIL
 import numpy as np
 import os
 import datetime
+from tqdm import tqdm
 
 IMPORT_DIR = "raw_bg/"
 EXPORT_DIR = "bgs/"
 valid_images = [".jpg", ".jpeg", ".gif", ".png", ".tga"]
 
 inputs = [f for f in os.listdir(IMPORT_DIR) if not f.startswith('.')]
-for bg in inputs:
+
+for bg in tqdm(inputs):
     ext = os.path.splitext(bg)[1]
     if ext.lower() not in valid_images:
         continue
