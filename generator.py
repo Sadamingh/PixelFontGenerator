@@ -2,28 +2,35 @@ from PIL import Image, ImageFont, ImageDraw
 import numpy as np
 from bs4 import BeautifulSoup
 import os
+import sys
 import datetime
-
 
 FONT_DIR_EN = "en_fonts/"
 FONT_DIR_JP = "jp_fonts/"
 BG_DIR = "bgs/"
 TEXT_DIR = "text_corpus/wiki_corpus_2.01/"
 
-def random_color():
-    r = np.random.randint(0, 255)
-    g = np.random.randint(0, 255)
-    b = np.random.randint(0, 255)
-    a = np.random.randint(0, 100)
+def random_color(random_type):
+    if random_type == "w":
+        r = np.random.randint(200, 255)
+        g = np.random.randint(200, 255)
+        b = np.random.randint(200, 255)
+        a = np.random.randint(0, 100)
+    else:
+        r = np.random.randint(0, 50)
+        g = np.random.randint(0, 50)
+        b = np.random.randint(0, 50)
+        a = np.random.randint(0, 100)
     return r, g, b, a
 
 
 def get_rand_background():
     if np.random.random() < .1:
-        r, g, b, a = random_color()
-        im = Image.new('RGBA', (1000, 120), (r, g, b, a))
+        random_type = "w" if np.random.random() < 0.5 else "b"
+        r, g, b, a = random_color(random_type)
+        im = Image.new('RGBA', (1000, 500), (r, g, b, a))
         print("[DEBUG] Background name: plain")
-        bg_type = "plain"
+        bg_type = "plain_" + random_type
     else:
         backgrounds = [f for f in os.listdir(BG_DIR) if not f.startswith('.')]
         background = np.random.choice(backgrounds)
@@ -41,10 +48,12 @@ def get_random_font(directory: str):
 
 
 def get_random_font_color(bg_type):
-    if "b" in bg_type:     # means black bg
-        font_color = "#fff"
+    if "b" in bg_type:  # means black bg
+        rand = lambda: np.random.randint(200, 255)
+        font_color = '#%02X%02X%02X' % (rand(), rand(), rand())
     elif "w" in bg_type:
-        font_color = "#000"
+        rand = lambda: np.random.randint(0, 55)
+        font_color = '#%02X%02X%02X' % (rand(), rand(), rand())
     else:
         font_color = ["#000" if np.random.random() < 0.5 else "#fff"][0]
     return font_color
@@ -61,7 +70,7 @@ def get_random_text(directory: str):
     if directory == FONT_DIR_EN:
         b_j = list(bs_data.find_all(attrs={"type": "check", "ver": "1"}))
         b_j = [str(i).replace("<e type=\"check\" ver=\"1\">", "")
-                     .replace("</e>", "") for i in b_j]
+                   .replace("</e>", "") for i in b_j]
         text_val = np.random.choice(b_j)
 
         if len(text_val) <= 60:
@@ -79,16 +88,17 @@ def get_random_text(directory: str):
     elif directory == FONT_DIR_JP:
         b_j = list(bs_data.find_all('j'))
         b_j = [str(i).replace("<j>", "")
-                     .replace("</j>", "") for i in b_j]
+                   .replace("</j>", "") for i in b_j]
         text_val = np.random.choice(b_j)
         return text_val[:30] + "\n" + text_val[30:60]
     else:
         raise ValueError("Can't recognize dir name.")
 
 
-def generate_image(directory: str, export_dir: str, max_text):
-
+def generate_image(directory: str, export_dir: str, max_text, max_iter=500, boundary=False):
     result = []
+    bboxes = []
+    iter_num = 0
 
     im, bg_type = get_rand_background()
 
@@ -97,32 +107,37 @@ def generate_image(directory: str, export_dir: str, max_text):
 
     while len(result) < N:
 
+        if iter_num > max_iter:
+            break
+
         font_name = directory + get_random_font(directory)
-        if directory.startswith("en"):
-            font_size = int(im.size[0] * 0.02)
-        else:
-            font_size = int(im.size[0] * 0.025)
+        font_size = np.random.randint(10, 25)
         font = ImageFont.truetype(font_name, font_size)
 
         text_value = get_random_text(directory)
         font_color = get_random_font_color(bg_type)
 
-        x0 = np.random.randint(im.size[0] * .6)
-        y0 = np.random.randint(im.size[1] * .6)
+        x0 = np.random.randint(im.size[0] * .9)
+        y0 = np.random.randint(im.size[1] * .9)
 
         bbox = draw.textbbox((x0, y0), text_value, font=font)
         if bbox[2] < im.size[0] and bbox[3] < im.size[1]:
-            draw.text((x0, y0), text_value, font=font, fill=font_color)
-            draw.rectangle(bbox, outline="red")
-            result.append((bbox, text_value.replace("\n", "")))
+            if not is_overlap(bbox, bboxes):
+                draw.text((x0, y0), text_value, font=font, fill=font_color)
+                if boundary:
+                    draw.rectangle(bbox, outline="red")
+                result.append((bbox, text_value.replace("\n", "")))
+                bboxes.append(bbox)
+
+        iter_num += 1
 
     if im.mode == "RGBA":
         im = im.convert('RGB')
     filename = export_dir + str(datetime.datetime.now()).replace("/", "") \
-                                                        .replace("-", "") \
-                                                        .replace(" ", "") \
-                                                        .replace(":", "") \
-                                                        .replace(".", "") + ".jpg"
+        .replace("-", "") \
+        .replace(" ", "") \
+        .replace(":", "") \
+        .replace(".", "") + ".jpg"
     im.save(filename)
     generate_result(filename, export_dir, result)
 
@@ -144,6 +159,16 @@ def to_rec(bbox):
     return [[x0, y0], [x1, y0], [x0, y1], [x1, y1]]
 
 
+def is_overlap(current_bbox, bboxes):
+    for bbox in bboxes:
+        if (current_bbox[0] >= bbox[2]) or (current_bbox[2] <= bbox[0]) \
+                or (current_bbox[3] <= bbox[1]) or (current_bbox[1] >= bbox[3]):
+            continue
+        else:
+            return True
+    return False
+
+
 def main():
     if not os.path.exists("en_data/images/"):
         os.makedirs("en_data/images/")
@@ -151,9 +176,9 @@ def main():
     if not os.path.exists("jp_data/images/"):
         os.makedirs("jp_data/images/")
 
-    for i in range(10):
-        generate_image(FONT_DIR_EN, "en_data/images/", 1)
-        generate_image(FONT_DIR_JP, "jp_data/images/", 1)
+    for i in range(int(sys.argv[1])):
+        generate_image(FONT_DIR_EN, "en_data/images/", int(sys.argv[2]))
+        generate_image(FONT_DIR_JP, "jp_data/images/", int(sys.argv[2]))
 
 
 if __name__ == '__main__':

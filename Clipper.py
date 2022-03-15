@@ -7,7 +7,6 @@ import datetime
 IMPORT_DIR = "raw_bg/"
 EXPORT_DIR = "bgs/"
 valid_images = [".jpg", ".jpeg", ".gif", ".png", ".tga"]
-crop_area = (0, 0, 1000, 120)
 
 inputs = [f for f in os.listdir(IMPORT_DIR) if not f.startswith('.')]
 for bg in inputs:
@@ -21,11 +20,11 @@ for bg in inputs:
             continue
         draw = ImageDraw.Draw(im, "RGBA")
         if np.random.random() < 0.5:
-            draw.rectangle((0, 0, 1000, 120), fill=(255, 255, 255, 120))
-            if im.size[0] >= 1000 and im.size[1] >= 120:
+            draw.rectangle((0, 0, im.size[0], im.size[1]), fill=(255, 255, 255, 120))
+            if im.size[0] >= 1000 and im.size[1] >= 500:
                 x_start = np.random.uniform(0, im.size[0] - 1000)
-                y_start = np.random.uniform(0, im.size[1] - 120)
-                crop_area = (x_start, y_start, x_start + 1000, y_start + 120)
+                y_start = np.random.uniform(0, im.size[1] - 500)
+                crop_area = (x_start, y_start, x_start + 1000, y_start + 500)
                 cropped_im = im.crop(crop_area)
                 cropped_im.save(EXPORT_DIR + "img_" + str(datetime.datetime.now()).replace("/", "")
                                 .replace("-", "")
@@ -33,11 +32,11 @@ for bg in inputs:
                                 .replace(":", "")
                                 .replace(".", "") + "_w" + ".jpg")
         else:
-            draw.rectangle((0, 0, 1000, 120), fill=(0, 0, 0, 120))
-            if im.size[0] >= 1000 and im.size[1] >= 120:
+            draw.rectangle((0, 0, im.size[0], im.size[1]), fill=(0, 0, 0, 120))
+            if im.size[0] >= 1000 and im.size[1] >= 500:
                 x_start = np.random.uniform(0, im.size[0] - 1000)
-                y_start = np.random.uniform(0, im.size[1] - 120)
-                crop_area = (x_start, y_start, x_start+1000, y_start+120)
+                y_start = np.random.uniform(0, im.size[1] - 500)
+                crop_area = (x_start, y_start, x_start+1000, y_start+500)
                 cropped_im = im.crop(crop_area)
                 cropped_im.save(EXPORT_DIR + "img_" + str(datetime.datetime.now()).replace("/", "")
                                 .replace("-", "")
