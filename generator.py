@@ -141,7 +141,7 @@ def generate_image(directory: str, export_dir: str, max_text, max_iter=500, boun
 
 
 def generate_result(filename, export_dir, result):
-    result_file = open(export_dir.replace("images/", "") + 'result.txt', 'a')
+    result_file = open(export_dir.replace("images/", "") + 'result.txt', 'a', encoding='utf-8')
     result_file.write(filename.replace(export_dir.split("/")[0], ".") + " [")
     for i, text_info in enumerate(result):
         result_file.write("{\"translation\":\"" + text_info[1] + "\",")
