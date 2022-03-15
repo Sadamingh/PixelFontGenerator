@@ -148,7 +148,7 @@ def generate_result(filename, export_dir, result):
         result_file.write(f"\"points\":{to_rec(text_info[0])}" + "}")
         if i < len(result) - 1:
             result_file.write(",")
-    result_file.write("}]\n")
+    result_file.write("]\n")
     result_file.close()
 
 
